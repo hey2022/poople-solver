@@ -5,8 +5,8 @@ use std::{
 
 fn main() {
     let word_list = include_str!("wordlist.csv");
-    let adj = load_words(word_list);
-    let parent = build_parent_map(&adj);
+    let (adj, total_words) = load_words(word_list);
+    let parent = build_parent_map(&adj, total_words);
 
     let mut input = String::new();
     loop {
@@ -39,25 +39,26 @@ fn main() {
     }
 }
 
-fn load_words(word_list: &'static str) -> HashMap<u32, Vec<&'static str>> {
-    let mut adj: HashMap<u32, Vec<&'static str>> = HashMap::new();
+fn load_words(word_list: &'static str) -> (Vec<Vec<&'static str>>, usize) {
+    let mut adj: Vec<Vec<&'static str>> = Vec::new();
+    let mut total_words = 0;
     for line in word_list.lines() {
         if let Some((word, dist_str)) = line.split_once(',') {
-            let distance: u32 = dist_str.trim().parse().unwrap();
-            adj.entry(distance).or_default().push(word.trim());
+            let distance: usize = dist_str.trim().parse().unwrap();
+            while adj.len() <= distance {
+                adj.push(Vec::new());
+            }
+            adj[distance].push(word.trim());
+            total_words += 1;
         }
     }
-    adj
+    (adj, total_words)
 }
 
-fn build_parent_map<'a>(adj: &HashMap<u32, Vec<&'a str>>) -> HashMap<&'a str, &'a str> {
+fn build_parent_map<'a>(adj: &Vec<Vec<&'a str>>, total_words: usize) -> HashMap<&'a str, &'a str> {
     let mut parent = HashMap::new();
-    let mut buckets: HashMap<[u8; 4], &'a str> = HashMap::with_capacity(2048);
-    let mut distance = 0;
-
-    while let (Some(current_words), Some(next_words)) =
-        (adj.get(&distance), adj.get(&(distance + 1)))
-    {
+    let mut buckets: HashMap<[u8; 4], &'a str> = HashMap::with_capacity(total_words);
+    for [current_words, next_words] in adj.array_windows() {
         buckets.clear();
         for &word in current_words {
             let b = word.as_bytes();
@@ -79,9 +80,6 @@ fn build_parent_map<'a>(adj: &HashMap<u32, Vec<&'a str>>) -> HashMap<&'a str, &'
                 }
             }
         }
-
-        distance += 1;
     }
-
     parent
 }
