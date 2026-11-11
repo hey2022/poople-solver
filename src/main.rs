@@ -3,6 +3,8 @@ use std::{
     io::{self, Write},
 };
 
+use owo_colors::OwoColorize;
+
 fn main() {
     let word_list = include_str!("wordlist.csv");
     let freq_list = include_str!("freq.csv");
@@ -25,7 +27,7 @@ fn main() {
 
         let mut curr = word.as_str();
         if word == "POOP" || parent.contains_key(curr) {
-            println!("{}", word);
+            print_word(&word);
         } else {
             println!("No possible way to reach POOP.");
             continue;
@@ -33,7 +35,7 @@ fn main() {
 
         let mut steps = 0;
         while let Some(next) = parent.get(curr) {
-            println!("{}", next);
+            print_word(next);
             curr = next;
             steps += 1;
         }
@@ -111,4 +113,15 @@ fn build_parent_map<'a>(
         }
     }
     parent
+}
+
+fn print_word(word: &str) {
+    for (ch, target) in word.chars().zip("POOP".chars()) {
+        if ch == target {
+            print!("{}", format!(" {} ", ch).on_truecolor(103, 50, 11).white());
+        } else {
+            print!(" {} ", ch);
+        }
+    }
+    println!();
 }

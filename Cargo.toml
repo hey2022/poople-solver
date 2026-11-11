@@ -2,3 +2,6 @@
 name = "poople-solver"
 version = "0.1.0"
 edition = "2024"
+
+[dependencies]
+owo-colors = "4.4.0"
